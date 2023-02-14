@@ -135,7 +135,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 		dp_vals  =   (int32_t*)malloc(10*nSamples*sizeof(int32_t));
 		// copying the format of dp_vals above
 		// but not sure why it's 10 * nSamples, since each sample only has 1 dp, trying without 10*
-		ac_vals  =   (int32_t*)malloc(2*nSamples*sizeof(int32_t));
+		ac_vals  =   (int32_t*)malloc(4*nSamples*sizeof(int32_t));
 	}
 	int n_sim_reads;  
 	int32_t ngt_arr=0;
@@ -217,8 +217,10 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 			}
 
 			dp_vals[sample_i]=n_sim_reads;
-			ac_vals[sample_i*2]=a_ac;
-			ac_vals[sample_i*2+1]=n_sim_reads-a_ac;
+			ac_vals[sample_i*4+0]=a_ac;
+			ac_vals[sample_i*4+1]=n_sim_reads-a_ac;
+			ac_vals[sample_i*4+2]=0;
+			ac_vals[sample_i*4+3]=0;
 
 		}
 
@@ -227,7 +229,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 
 	bcf_update_format_int32(out_hdr, out_bcf, "DP", dp_vals,nSamples);
 	// add allele count column
-	bcf_update_format_int32(out_hdr, out_bcf, "AC", ac_vals,2*nSamples);
+	bcf_update_format_int32(out_hdr, out_bcf, "AC", ac_vals,4*nSamples);
 
 	// update ref, alt
 	if(bcf_update_alleles_str(out_hdr,out_bcf,"A,C,G,T")!=0){
