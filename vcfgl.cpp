@@ -79,15 +79,19 @@ FILE *openFile(const char* a,const char* b){
 	return fp;
 }
 
-
-
 int pick_base(double errate, int inbase){
 	int outbase;
 	if (drand48()<errate){
 		while ((outbase=(floor(4*drand48()))) == inbase);
 		return outbase;
 	}
-	else return inbase;
+	else{
+	  if (inbase == 0){
+	    // add count for A allele if inbase is A allele (currently assuming no error rate)
+	    a_ac+=1;
+	  }
+	  return inbase;
+	}
 }
 
 
@@ -102,7 +106,8 @@ char *get_time(){
 int32_t *gt_arr=NULL;
 int32_t *dp_vals=NULL;
 float *gl_vals=NULL;
-
+// reference allele count tally
+int32_t *ac_vals=NULL;
 
 int setblank(bcf1_t *blk,bcf1_t *unmod,bcf_hdr_t *hdr){
 
@@ -128,6 +133,9 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 	if(gl_vals==NULL){
 		gl_vals  =   (float*)malloc(10*nSamples*sizeof(float));
 		dp_vals  =   (int32_t*)malloc(10*nSamples*sizeof(int32_t));
+		// copying the format of dp_vals above
+		// but not sure why it's 10 * nSamples, since each sample only has 1 dp, trying without 10*
+		ac_vals  =   (int32_t*)malloc(2*nSamples*sizeof(int32_t));
 	}
 	int n_sim_reads;  
 	int32_t ngt_arr=0;
@@ -180,6 +188,8 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 			}
 		
 			// fprintf(stderr,"%d (%d,%d)\n",n_sim_reads,bin_gts[0],bin_gts[1]);
+			// 
+			int a_ac=0;
 
 			for (int i=0; i<n_sim_reads; i++){
 				if(drand48()<0.5){
@@ -207,6 +217,8 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 			}
 
 			dp_vals[sample_i]=n_sim_reads;
+			a_ac_vals[sample_i*2]=a_ac;
+			a_ac_vals[sample_i*2+1]=n_sim_reads-a_ac;
 
 		}
 
@@ -214,6 +226,8 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 
 
 	bcf_update_format_int32(out_hdr, out_bcf, "DP", dp_vals,nSamples);
+	// add allele count column
+	bcf_update_format_int32(out_hdr, out_bcf, "AC", ac_vals,2*nSamples);
 
 	// update ref, alt
 	if(bcf_update_alleles_str(out_hdr,out_bcf,"A,C,G,T")!=0){
