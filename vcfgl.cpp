@@ -55,7 +55,7 @@
 #include "version.h"
 
 const int vcf_gl_order_idx[10]={0,1,4,2,5,7,3,6,8,9};
-
+int a_ac;
 
 
 FILE *getFILE(const char*fname,const char* mode){
@@ -189,7 +189,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 		
 			// fprintf(stderr,"%d (%d,%d)\n",n_sim_reads,bin_gts[0],bin_gts[1]);
 			// 
-			int a_ac=0;
+			a_ac=0;
 
 			for (int i=0; i<n_sim_reads; i++){
 				if(drand48()<0.5){
@@ -217,8 +217,8 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 			}
 
 			dp_vals[sample_i]=n_sim_reads;
-			a_ac_vals[sample_i*2]=a_ac;
-			a_ac_vals[sample_i*2+1]=n_sim_reads-a_ac;
+			ac_vals[sample_i*2]=a_ac;
+			ac_vals[sample_i*2+1]=n_sim_reads-a_ac;
 
 		}
 
