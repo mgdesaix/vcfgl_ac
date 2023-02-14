@@ -134,8 +134,8 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 		gl_vals  =   (float*)malloc(10*nSamples*sizeof(float));
 		dp_vals  =   (int32_t*)malloc(10*nSamples*sizeof(int32_t));
 		// copying the format of dp_vals above
-		// but not sure why it's 10 * nSamples, since each sample only has 1 dp, trying without 10*
-		ac_vals  =   (int32_t*)malloc(4*nSamples*sizeof(int32_t));
+		// but not sure why it's 10 * nSamples, since each sample only has 1 dp
+		ac_vals  =   (int32_t*)malloc(10*nSamples*sizeof(int32_t));
 	}
 	int n_sim_reads;  
 	int32_t ngt_arr=0;
