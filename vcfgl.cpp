@@ -55,7 +55,7 @@
 #include "version.h"
 
 const int vcf_gl_order_idx[10]={0,1,4,2,5,7,3,6,8,9};
-int a_ac;
+int a_ad;
 
 
 FILE *getFILE(const char*fname,const char* mode){
@@ -88,7 +88,7 @@ int pick_base(double errate, int inbase){
 	else{
 	  if (inbase == 0){
 	    // add count for A allele if inbase is A allele (currently assuming no error rate)
-	    a_ac+=1;
+	    a_ad+=1;
 	  }
 	  return inbase;
 	}
@@ -107,7 +107,7 @@ int32_t *gt_arr=NULL;
 int32_t *dp_vals=NULL;
 float *gl_vals=NULL;
 // reference allele count tally
-int32_t *ac_vals=NULL;
+int32_t *ad_vals=NULL;
 
 int setblank(bcf1_t *blk,bcf1_t *unmod,bcf_hdr_t *hdr){
 
@@ -135,7 +135,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 		dp_vals  =   (int32_t*)malloc(10*nSamples*sizeof(int32_t));
 		// copying the format of dp_vals above
 		// but not sure why it's 10 * nSamples, since each sample only has 1 dp
-		ac_vals  =   (int32_t*)malloc(10*nSamples*sizeof(int32_t));
+		ad_vals  =   (int32_t*)malloc(10*nSamples*sizeof(int32_t));
 	}
 	int n_sim_reads;  
 	int32_t ngt_arr=0;
@@ -189,7 +189,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 		
 			// fprintf(stderr,"%d (%d,%d)\n",n_sim_reads,bin_gts[0],bin_gts[1]);
 			// 
-			a_ac=0;
+			a_ad=0;
 
 			for (int i=0; i<n_sim_reads; i++){
 				if(drand48()<0.5){
@@ -217,10 +217,8 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 			}
 
 			dp_vals[sample_i]=n_sim_reads;
-			ac_vals[sample_i*4+0]=a_ac;
-			ac_vals[sample_i*4+1]=n_sim_reads-a_ac;
-			ac_vals[sample_i*4+2]=0;
-			ac_vals[sample_i*4+3]=0;
+			ad_vals[sample_i*2+0]=a_ad;
+			ad_vals[sample_i*2+1]=n_sim_reads-a_ad;
 
 		}
 
@@ -229,7 +227,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 
 	bcf_update_format_int32(out_hdr, out_bcf, "DP", dp_vals,nSamples);
 	// add allele count column
-	bcf_update_format_int32(out_hdr, out_bcf, "AC", ac_vals,4*nSamples);
+	bcf_update_format_int32(out_hdr, out_bcf, "AD", ad_vals,2*nSamples);
 
 	// update ref, alt
 	if(bcf_update_alleles_str(out_hdr,out_bcf,"A,C,G,T")!=0){
