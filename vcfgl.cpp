@@ -148,6 +148,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 
 
 	for (int sample_i=0; sample_i<nSamples; sample_i++) {
+	  a_ad=0;
 
 
 		if(mps_depths!=NULL){
@@ -162,6 +163,8 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 				bcf_float_set_missing(gl_vals[sample_i*10+j]);
 			}
 			dp_vals[sample_i]=0;
+		  ad_vals[sample_i*2+0]=0;
+		  ad_vals[sample_i*2+1]=0
 
 		}else{
 
@@ -189,7 +192,6 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 		
 			// fprintf(stderr,"%d (%d,%d)\n",n_sim_reads,bin_gts[0],bin_gts[1]);
 			// 
-			a_ad=0;
 
 			for (int i=0; i<n_sim_reads; i++){
 				if(drand48()<0.5){
