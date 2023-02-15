@@ -55,6 +55,7 @@
 #include "version.h"
 
 const int vcf_gl_order_idx[10]={0,1,4,2,5,7,3,6,8,9};
+// Matt's addition; initiate the global variable for allele counts
 int a_ad;
 
 
@@ -106,7 +107,7 @@ char *get_time(){
 int32_t *gt_arr=NULL;
 int32_t *dp_vals=NULL;
 float *gl_vals=NULL;
-// reference allele count tally
+// Matt's addition: reference allele count tally
 int32_t *ad_vals=NULL;
 
 int setblank(bcf1_t *blk,bcf1_t *unmod,bcf_hdr_t *hdr){
@@ -133,7 +134,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 	if(gl_vals==NULL){
 		gl_vals  =   (float*)malloc(10*nSamples*sizeof(float));
 		dp_vals  =   (int32_t*)malloc(10*nSamples*sizeof(int32_t));
-		// copying the format of dp_vals above
+		// Matt's addition: copying the format of dp_vals above
 		// but not sure why it's 10 * nSamples, since each sample only has 1 dp
 		ad_vals  =   (int32_t*)malloc(4*nSamples*sizeof(int32_t));
 	}
@@ -148,6 +149,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 
 
 	for (int sample_i=0; sample_i<nSamples; sample_i++) {
+	  // Matt added; make sure tally goes to 0 for each individual at start
 	  a_ad=0;
 
 
@@ -163,6 +165,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 				bcf_float_set_missing(gl_vals[sample_i*10+j]);
 			}
 			dp_vals[sample_i]=0;
+		  // Matt added; ad_vals are 0 when no simulated reads
 		  ad_vals[sample_i*4+0]=0;
 		  ad_vals[sample_i*4+1]=0;
 		  ad_vals[sample_i*4+2]=0;
@@ -221,6 +224,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 			}
 
 			dp_vals[sample_i]=n_sim_reads;
+			// Matt's addition for the AD format that will be output
 			ad_vals[sample_i*2+0]=a_ad;
 			ad_vals[sample_i*2+1]=n_sim_reads-a_ad;
 			ad_vals[sample_i*2+2]=0;
@@ -232,7 +236,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 
 
 	bcf_update_format_int32(out_hdr, out_bcf, "DP", dp_vals,nSamples);
-	// add allele count column
+	// Matt's addition; add allele count column
 	bcf_update_format_int32(out_hdr, out_bcf, "AD", ad_vals,4*nSamples);
 
 	// update ref, alt
@@ -392,6 +396,11 @@ int main(int argc, char **argv) {
 			fprintf(stderr,"failed to append header\n");
 			exit(1);
 		}
+		
+		if(bcf_hdr_append(out_hdr, "##FORMAT=<ID=AD,Number=R,Type=Integer,Description=\"Allelic depths for the ref and alt alleles in the order listed\">")!=0){
+		  fprintf(stderr,"failed to append header\n");
+		  exit(1);
+		}
 
 		if(bcf_hdr_write(out_ff,out_hdr)!=0){
 			fprintf(stderr,"failed to write bcf\n");
@@ -537,6 +546,7 @@ int main(int argc, char **argv) {
 		if(gl_vals!=NULL){
 			free(gl_vals);
 			free(dp_vals);
+			free(ad_vals);
 		}
 		fclose(arg_ff);
 		free(gt_arr);
