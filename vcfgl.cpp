@@ -164,7 +164,7 @@ int setval(bcf_hdr_t *out_hdr,bcf1_t *out_bcf,int nSamples,double errate,double 
 			}
 			dp_vals[sample_i]=0;
 		  ad_vals[sample_i*2+0]=0;
-		  ad_vals[sample_i*2+1]=0
+		  ad_vals[sample_i*2+1]=0;
 
 		}else{
 
